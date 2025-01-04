@@ -1,45 +1,60 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
+const express = require('express')
+const bodyParser = require('body-parser')
+const cors = require('cors')
 
-// 设置模板引擎
-app.set('view engine', 'ejs');
+const app = express()
 
-// 静态文件目录
-app.use(express.static('public'));
+// Middleware
+app.use(cors())
+app.use(bodyParser.json())
+app.use(express.static('dist'))
 
-// 解析表单数据
-app.use(bodyParser.urlencoded({ extended: true }));
+// In-memory data store
+let articles = []
+let idCounter = 0
 
-// 临时存储文章
-let articles = [];
+// API Routes
+app.get('/api/articles', (req, res) => {
+  res.json(articles.map((article, index) => ({
+    id: index,
+    title: article.title,
+    summary: article.content.substring(0, 100),
+    createdAt: article.createdAt
+  })))
+})
 
-// 首页 - 显示所有文章
-app.get('/', (req, res) => {
-  res.render('index', { articles });
-});
+app.get('/api/articles/:id', (req, res) => {
+  const id = parseInt(req.params.id)
+  if (id >= 0 && id < articles.length) {
+    res.json(articles[id])
+  } else {
+    res.status(404).json({ error: 'Article not found' })
+  }
+})
 
-// 显示创建文章页面
-app.get('/articles/new', (req, res) => {
-  res.render('new');
-});
+app.post('/api/articles', (req, res) => {
+  const { title, content } = req.body
+  if (!title || !content) {
+    return res.status(400).json({ error: 'Title and content are required' })
+  }
 
-// 创建新文章
-app.post('/articles', (req, res) => {
-  const { title, content } = req.body;
-  articles.push({ title, content });
-  res.redirect('/');
-});
+  const newArticle = {
+    id: idCounter++,
+    title,
+    content,
+    createdAt: new Date().toISOString()
+  }
+  articles.push(newArticle)
+  res.status(201).json(newArticle)
+})
 
-// 查看单个文章
-app.get('/articles/:id', (req, res) => {
-  const id = req.params.id;
-  const article = articles[id];
-  res.render('show', { article });
-});
+// Serve Vue app
+app.get('*', (req, res) => {
+  res.sendFile('index.html', { root: 'dist' })
+})
 
-// 启动服务器
-const PORT = 3000;
+// Start server
+const PORT = 3000
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+  console.log(`Server running on http://localhost:${PORT}`)
+})
