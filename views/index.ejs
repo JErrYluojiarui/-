@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Blog</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .article { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+    .article h2 { margin-top: 0; }
+    .new-article-btn { 
+      display: inline-block;
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simple Blog</h1>
+  <a href="/articles/new" class="new-article-btn">New Article</a>
+
+  <% if (articles.length > 0) { %>
+    <% articles.forEach((article, index) => { %>
+      <div class="article">
+        <h2><a href="/articles/<%= index %>"><%= article.title %></a></h2>
+        <p><%= article.content.substring(0, 100) %>...</p>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p>No articles yet. Be the first to write one!</p>
+  <% } %>
+</body>
+</html>
